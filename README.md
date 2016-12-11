@@ -3,6 +3,7 @@ elcid
 
 > A tool for encoding and decoding content IDs
 
+![](https://jeanarogers.files.wordpress.com/2011/05/el-cid.jpg)
 
 ## Table of Contents
 
