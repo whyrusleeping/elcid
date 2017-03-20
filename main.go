@@ -68,9 +68,27 @@ func encodeToCid(l string, t string) (string, error) {
 		return encodeBtc(l, cid.BitcoinBlock), nil
 	case "bitcoin-tx":
 		return encodeBtc(l, cid.BitcoinTx), nil
+	case "eth-block":
+		return encodeEth(l, cid.EthereumBlock)
+	case "eth-tx":
+		return encodeEth(l, cid.EthereumTx)
 	default:
 		return "", fmt.Errorf("unrecognized input type: %s", t)
 	}
+}
+
+func encodeEth(l string, mcd uint64) (string, error) {
+	out, err := hex.DecodeString(l)
+	if err != nil {
+		return "", err
+	}
+
+	h, err := mh.Encode(out, mh.KECCAK_256)
+	if err != nil {
+		return "", err
+	}
+
+	return cid.NewCidV1(mcd, mh.Multihash(h)).String(), nil
 }
 
 func encodeBtc(l string, mcd uint64) string {

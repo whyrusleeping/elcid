@@ -18,6 +18,12 @@ var cases = []testCase{
 		Hash:   "dbl-sha2-256",
 		Cid:    "z4HhYA9dptHPcigLztHGy4n8Ue2CstZWGVkrvGidtQyS2BGHv33",
 	},
+	{
+		Native: "b4fbadf8ea452b139718e2700dc1135cfc81145031c84b7ab27cd710394f7b38",
+		Type:   "eth-block",
+		Hash:   "keccak-256",
+		Cid:    "z43AaGF4uHSY4waU68L3DLUKHZP7yfZoo6QbLmid5HomZ4WtbWw",
+	},
 }
 
 func TestVerifyCases(t *testing.T) {
