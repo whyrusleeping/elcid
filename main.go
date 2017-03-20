@@ -42,25 +42,34 @@ func main() {
 	for scan.Scan() {
 		l := scan.Text()
 		if encode {
-			encodeAndPrint(l, *typ)
+			out, err := encodeToCid(l, *typ)
+			if err != nil {
+				fatal(err)
+			}
+			fmt.Println(out)
 		} else {
-			decodeAndPrint(l)
+			t, h, v, err := decodeToInfo(l)
+			if err != nil {
+				fatal(err)
+			}
+
+			fmt.Printf("%s\t%s\t%s\n", t, h, v)
 		}
 	}
 }
 
-func encodeAndPrint(l string, t string) {
+func encodeToCid(l string, t string) (string, error) {
 	switch t {
 	case "zcash-block":
-		fmt.Println(encodeBtc(l, cid.ZcashBlock))
+		return encodeBtc(l, cid.ZcashBlock), nil
 	case "zcash-tx":
-		fmt.Println(encodeBtc(l, cid.ZcashTx))
-	case "btc-block":
-		fmt.Println(encodeBtc(l, cid.BitcoinBlock))
-	case "btc-tx":
-		fmt.Println(encodeBtc(l, cid.BitcoinTx))
+		return encodeBtc(l, cid.ZcashTx), nil
+	case "bitcoin-block":
+		return encodeBtc(l, cid.BitcoinBlock), nil
+	case "bitcoin-tx":
+		return encodeBtc(l, cid.BitcoinTx), nil
 	default:
-		fatal("unrecognized input type: " + t)
+		return "", fmt.Errorf("unrecognized input type: %s", t)
 	}
 }
 
@@ -80,10 +89,10 @@ func encodeBtc(l string, mcd uint64) string {
 	return c.String()
 }
 
-func decodeAndPrint(l string) {
+func decodeToInfo(l string) (string, string, string, error) {
 	c, err := cid.Parse(l)
 	if err != nil {
-		fatal(err)
+		return "", "", "", err
 	}
 
 	dec, _ := mh.Decode(c.Hash())
@@ -93,7 +102,8 @@ func decodeAndPrint(l string) {
 	case cid.ZcashBlock, cid.ZcashTx, cid.BitcoinBlock, cid.BitcoinTx:
 		raw = reverse(raw)
 	}
-	fmt.Printf("%s\t%s\t%s\n", cname, dec.Name, hex.EncodeToString(raw))
+
+	return cname, dec.Name, hex.EncodeToString(raw), nil
 }
 
 func reverse(b []byte) []byte {
