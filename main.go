@@ -52,15 +52,19 @@ func main() {
 func encodeAndPrint(l string, t string) {
 	switch t {
 	case "zcash-block":
-		fmt.Println(encodeZcash(l, cid.ZcashBlock))
+		fmt.Println(encodeBtc(l, cid.ZcashBlock))
 	case "zcash-tx":
-		fmt.Println(encodeZcash(l, cid.ZcashTx))
+		fmt.Println(encodeBtc(l, cid.ZcashTx))
+	case "btc-block":
+		fmt.Println(encodeBtc(l, cid.BitcoinBlock))
+	case "btc-tx":
+		fmt.Println(encodeBtc(l, cid.BitcoinTx))
 	default:
 		fatal("unrecognized input type: " + t)
 	}
 }
 
-func encodeZcash(l string, mcd uint64) string {
+func encodeBtc(l string, mcd uint64) string {
 	out, err := hex.DecodeString(l)
 	if err != nil {
 		fatal(err)
@@ -72,7 +76,7 @@ func encodeZcash(l string, mcd uint64) string {
 		fatal(err)
 	}
 
-	c := cid.NewCidV1(cid.ZcashBlock, h)
+	c := cid.NewCidV1(mcd, h)
 	return c.String()
 }
 
@@ -86,7 +90,7 @@ func decodeAndPrint(l string) {
 	cname := mcp.CodeToString(mcp.Code(c.Type()))
 	raw := c.Hash()[len(c.Hash())-dec.Length:]
 	switch c.Type() {
-	case cid.ZcashBlock, cid.ZcashTx:
+	case cid.ZcashBlock, cid.ZcashTx, cid.BitcoinBlock, cid.BitcoinTx:
 		raw = reverse(raw)
 	}
 	fmt.Printf("%s\t%s\t%s\n", cname, dec.Name, hex.EncodeToString(raw))
