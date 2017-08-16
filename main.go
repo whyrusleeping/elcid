@@ -69,9 +69,9 @@ func encodeToCid(l string, t string) (string, error) {
 	case "bitcoin-tx":
 		return encodeBtc(l, cid.BitcoinTx), nil
 	case "eth-block":
-		return encodeEth(l, cid.EthereumBlock)
+		return encodeEth(l, cid.EthBlock)
 	case "eth-tx":
-		return encodeEth(l, cid.EthereumTx)
+		return encodeEth(l, cid.EthTx)
 	default:
 		return "", fmt.Errorf("unrecognized input type: %s", t)
 	}
