@@ -23,7 +23,7 @@ go get github.com/whyrusleeping/elcid
 
 To use Elcid, you can either encode or decode CIDs.
 
-####Encoding
+#### Encoding
 
 To encode content into a CID, use the following command:
 
@@ -39,7 +39,7 @@ The available input types are:
 * eth-block
 * eth-tx
 
-####Decoding
+#### Decoding
 
 To decode a CID, use the following command:
 
@@ -48,7 +48,7 @@ echo "<cid>" | elcid d
 ```
 The output will contain the codec name, multihash type, and raw hash of the CID.
 
-####Examples
+#### Examples
 
 ```shell
 me@home ~> echo 000000002f39739a41ee7ceb910d6b2d0084129719e95aa16f7af005380e370d | elcid -type=zcash-block e
