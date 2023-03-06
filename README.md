@@ -28,7 +28,7 @@ To use Elcid, you can either encode or decode CIDs.
 To encode content into a CID, use the following command:
 
 ```shell
-echo "<content>" | elcid -type<input_type> e
+echo "<content>" | elcid -type <input_type> e
 ```
 The available input types are:
 
