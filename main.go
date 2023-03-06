@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 
 	cid "github.com/ipfs/go-cid"
@@ -12,99 +13,97 @@ import (
 	mh "github.com/multiformats/go-multihash"
 )
 
-func fatal(i interface{}) {
-	fmt.Println(i)
-	os.Exit(1)
-}
-
 func main() {
 	typ := flag.String("type", "", "type to convert to/from cid")
 	flag.Parse()
 
 	if len(flag.Args()) == 0 {
-		fatal("must specify 'e' or 'd' for encode or decode")
+		log.Fatal("must specify 'e' or 'd' for encode or decode")
 	}
 
-	var encode bool
-	switch flag.Arg(0) {
+	encode, err := parseArgs(flag.Arg(0), *typ)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = processInput(encode, *typ)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func parseArgs(arg string, typ string) (bool, error) {
+	switch arg {
 	case "e":
-		encode = true
-		if *typ == "" {
-			fatal("please specify type of input for encoding")
+		if typ == "" {
+			return false, fmt.Errorf("please specify type of input for encoding")
 		}
+		return true, nil
 	case "d":
-		encode = false
+		return false, nil
 	default:
-		fatal("must specify 'e' or 'd' for encode or decode")
+		return false, fmt.Errorf("must specify 'e' or 'd' for encode or decode")
 	}
+}
 
+func processInput(encode bool, typ string) error {
 	scan := bufio.NewScanner(os.Stdin)
 	for scan.Scan() {
 		l := scan.Text()
 		if encode {
-			out, err := encodeToCid(l, *typ)
+			out, err := encodeToCid(l, typ)
 			if err != nil {
-				fatal(err)
+				log.Fatal(err)
 			}
 			fmt.Println(out)
 		} else {
 			t, h, v, err := decodeToInfo(l)
 			if err != nil {
-				fatal(err)
+				log.Fatal(err)
 			}
 
 			fmt.Printf("%s\t%s\t%s\n", t, h, v)
 		}
 	}
+
+	if err := scan.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return nil
 }
 
 func encodeToCid(l string, t string) (string, error) {
 	switch t {
 	case "zcash-block":
-		return encodeBtc(l, cid.ZcashBlock), nil
+		return encode(l, cid.ZcashBlock, mh.DBL_SHA2_256)
 	case "zcash-tx":
-		return encodeBtc(l, cid.ZcashTx), nil
+		return encode(l, cid.ZcashTx, mh.DBL_SHA2_256)
 	case "bitcoin-block":
-		return encodeBtc(l, cid.BitcoinBlock), nil
+		return encode(l, cid.BitcoinBlock, mh.DBL_SHA2_256)
 	case "bitcoin-tx":
-		return encodeBtc(l, cid.BitcoinTx), nil
+		return encode(l, cid.BitcoinTx, mh.DBL_SHA2_256)
 	case "eth-block":
-		return encodeEth(l, cid.EthBlock)
+		return encode(l, cid.EthBlock, mh.KECCAK_256)
 	case "eth-tx":
-		return encodeEth(l, cid.EthTx)
+		return encode(l, cid.EthTx, mh.KECCAK_256)
 	default:
 		return "", fmt.Errorf("unrecognized input type: %s", t)
 	}
 }
 
-func encodeEth(l string, mcd uint64) (string, error) {
+func encode(l string, mcd uint64, mhType uint64) (string, error) {
 	out, err := hex.DecodeString(l)
 	if err != nil {
 		return "", err
 	}
 
-	h, err := mh.Encode(out, mh.KECCAK_256)
+	h, err := mh.Encode(out, mh.SHA2_256)
 	if err != nil {
 		return "", err
 	}
 
 	return cid.NewCidV1(mcd, mh.Multihash(h)).String(), nil
-}
-
-func encodeBtc(l string, mcd uint64) string {
-	out, err := hex.DecodeString(l)
-	if err != nil {
-		fatal(err)
-	}
-
-	hval := reverse(out)
-	h, err := mh.Encode(hval, mh.DBL_SHA2_256)
-	if err != nil {
-		fatal(err)
-	}
-
-	c := cid.NewCidV1(mcd, h)
-	return c.String()
 }
 
 func decodeToInfo(l string) (string, string, string, error) {
